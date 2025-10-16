@@ -1,4 +1,3 @@
-Refine the following unit, keep structure, return only corrected text.
-
+Refine the following unit without changing its language or meaning. Return only corrected text.
 
 {{TEXT}}

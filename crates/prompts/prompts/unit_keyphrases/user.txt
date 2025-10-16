@@ -1,0 +1,4 @@
+
+Extract 3–7 keyphrases from the following text. Return ONLY a JSON array of strings.
+
+{{TEXT}}

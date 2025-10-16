@@ -1,7 +1,7 @@
 use crate::{
     refine::Refiners,
     segmenter::split_sentences,
-    types::{PipelineConfig, PipelineOutput, RefineOptions, SegMode, Unit},
+    types::{Document, PipelineConfig, PipelineOutput, RefineOptions, SegMode, Unit},
 };
 use llm_traits::LlmClient;
 use tracing::{debug, info};
@@ -23,11 +23,18 @@ pub async fn run<C: LlmClient>(
             text: input_text.to_string(),
             start_char: 0,
             end_char: input_text.len(),
+            refined: None,
+            summary_short: None,
+            summary_long: None,
+            keyphrases: Vec::new(),
+            entities: Vec::new(),
+            topics_ru: Vec::new(),
+            topics_en: Vec::new(),
         }]
     };
     info!("🔸 Segmentation complete: {} units", units.len());
 
-    // 2) Refinement + composite
+    // 2) Refinement + per-unit enrichment + document summary
     let opts = RefineOptions {
         bilingual_topics: true,
         temperature: 0.1,
@@ -41,19 +48,21 @@ pub async fn run<C: LlmClient>(
         prompts: &bank,
     };
 
-    let mut composite = None;
+    let mut document: Option<Document> = None;
     match cfg.seg_mode {
         SegMode::SentencesOnly => {
-            info!("🟢 SegMode = SentencesOnly, skipping LLM refinement");
+            info!("🟢 SegMode = SentencesOnly, skipping LLM refinement/enrichment");
         }
         SegMode::LlmFirst | SegMode::Auto => {
             info!("🔹 Step 2: refining {} units...", units.len());
             units = r.refine_units(&units, &opts).await?;
-            debug!("Refinement complete. Building composite...");
-            composite = Some(r.build_composite(&units, &opts).await?);
+            debug!("Refinement complete. Enriching units...");
+            r.enrich_units(&mut units, &opts).await?;
+            debug!("Enrichment complete. Building document summary...");
+            document = Some(r.build_document(&units, &opts).await?);
         }
     }
 
-    info!("✅ Pipeline finished: {} refined units", units.len());
-    Ok(PipelineOutput { units, composite })
+    info!("✅ Pipeline finished: {} units", units.len());
+    Ok(PipelineOutput { units, document })
 }

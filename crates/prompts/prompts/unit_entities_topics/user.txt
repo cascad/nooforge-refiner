@@ -1,0 +1,9 @@
+Extract:
+- entities (proper names or domain terms)
+- 3–7 topics in Russian
+- 3–7 topics in English
+
+Return ONLY JSON: {"entities": [], "topics_ru": [], "topics_en": []}
+
+Text:
+{{TEXT}}

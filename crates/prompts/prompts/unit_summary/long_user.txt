@@ -1,0 +1,3 @@
+Write a concise paragraph (3–5 sentences, <= 120 tokens) summarizing the following text. Keep the same language as the input.
+
+{{TEXT}}
