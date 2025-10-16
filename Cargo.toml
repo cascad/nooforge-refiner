@@ -1,0 +1,45 @@
+[workspace]
+members = [
+"crates/refiner-core",
+"crates/llm-traits",
+"crates/llm-openrouter",
+"crates/refiner-cli",
+"crates/cache",
+"crates/prompts",
+]
+resolver = "2"
+
+
+[workspace.package]
+edition = "2021"
+license = "Apache-2.0"
+authors = ["cascad & contributors"]
+
+
+[workspace.dependencies]
+anyhow = "1"
+thiserror = "1"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "fs", "io-util"] }
+reqwest = { version = "0.12", features = ["json", "gzip", "brotli", "deflate", "stream", "rustls-tls"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "fmt"] }
+clap = { version = "4", features = ["derive"] }
+regex = "1"
+unicode-segmentation = "1"
+percent-encoding = "2"
+sha2 = "0.10"
+hex = "0.4"
+futures = "0.3"
+camino = "1"
+url = "2"
+rust-embed = "8"
+async-trait = "0.1"
+
+
+[workspace.features]
+# backend toggles; default = OpenRouter only
+backend-openrouter = []
+backend-ollama = [] # planned
+backend-llamacpp = [] # planned

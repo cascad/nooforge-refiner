@@ -20,4 +20,10 @@ venv.bak/
 .vscode
 
 .nooforge_llm_cache.sqlite
-out.json
+./out.json
+
+.cache
+
+# Added by cargo
+
+/target

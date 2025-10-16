@@ -1,0 +1,1 @@
+This is a simple example text. It should be refined and summarized by the model.
