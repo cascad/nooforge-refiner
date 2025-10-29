@@ -142,7 +142,6 @@ impl ServerConfig {
 
         // --- Hybrid (ВАЖНО: сохраняем старые ENV имена) ---
         let hybrid = HybridSection {
-            qdrant_collection: get_env_or_warn("HYBRID_COLLECTION", "chunks"),
             model_dir: get_env_or_warn("HYBRID_MODEL_DIR", "./models/multilingual-e5-base"),
             tokenizer_path: get_env_or_warn(
                 "HYBRID_TOKENIZER_PATH",
@@ -150,6 +149,7 @@ impl ServerConfig {
             ),
             qdrant_host: get_env_or_warn("QDRANT_HOST", "127.0.0.1"),
             qdrant_port: get_env_num_or_warn("QDRANT_PORT", 6334),
+            qdrant_collection: get_env_or_warn("QDRANT_COLLECTION", "chunks"),
             source_prefix: get_env_or_warn("HYBRID_SOURCE_PREFIX", "file://"),
             max_tokens: get_env_num_or_warn("HYBRID_CHUNK_MAX_TOKENS", 350),
             overlap_tokens: get_env_num_or_warn("HYBRID_CHUNK_OVERLAP", 60),

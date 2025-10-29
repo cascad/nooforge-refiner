@@ -17,10 +17,11 @@ pub struct IngestFileReq {
     pub title: Option<String>,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct RagReq {
     pub q: String,
     pub limit: Option<usize>,
+    pub stream: Option<bool>,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -31,10 +32,9 @@ pub struct SearchReq {
 
 pub mod commands {
     use super::*;
-    use reqwest::header;
     use base64::Engine;
+    use reqwest::header;
 
-    #[tauri::command]
     pub async fn ingest_text(req: IngestTextReq) -> Result<serde_json::Value, String> {
         let client = reqwest::Client::new();
         let lang = req.lang.unwrap_or_else(|| "ru".into());
@@ -57,10 +57,11 @@ pub mod commands {
             .await
             .map_err(|e| e.to_string())?;
 
-        resp.json::<serde_json::Value>().await.map_err(|e| e.to_string())
+        resp.json::<serde_json::Value>()
+            .await
+            .map_err(|e| e.to_string())
     }
 
-    #[tauri::command]
     pub async fn ingest_file(req: IngestFileReq) -> Result<serde_json::Value, String> {
         let client = reqwest::Client::new();
         let lang = req.lang.unwrap_or_else(|| "ru".into());
@@ -85,15 +86,17 @@ pub mod commands {
             .await
             .map_err(|e| e.to_string())?;
 
-        resp.json::<serde_json::Value>().await.map_err(|e| e.to_string())
+        resp.json::<serde_json::Value>()
+            .await
+            .map_err(|e| e.to_string())
     }
 
-    #[tauri::command]
     pub async fn rag(req: RagReq) -> Result<serde_json::Value, String> {
         let client = reqwest::Client::new();
         let body = serde_json::json!({
             "q": req.q,
-            "limit": req.limit.unwrap_or(6)
+            "limit": req.limit.unwrap_or(6),
+            // "stream": req.stream.unwrap_or(false),
         });
 
         let resp = client
@@ -104,10 +107,13 @@ pub mod commands {
             .await
             .map_err(|e| e.to_string())?;
 
-        resp.json::<serde_json::Value>().await.map_err(|e| e.to_string())
+        println!("shit! -> {:?}", resp);
+
+        resp.json::<serde_json::Value>()
+            .await
+            .map_err(|e| e.to_string())
     }
 
-    #[tauri::command]
     pub async fn search(req: SearchReq) -> Result<serde_json::Value, String> {
         let client = reqwest::Client::new();
         let url = format!(
@@ -117,6 +123,8 @@ pub mod commands {
         );
 
         let resp = client.get(url).send().await.map_err(|e| e.to_string())?;
-        resp.json::<serde_json::Value>().await.map_err(|e| e.to_string())
+        resp.json::<serde_json::Value>()
+            .await
+            .map_err(|e| e.to_string())
     }
 }

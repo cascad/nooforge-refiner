@@ -5,9 +5,10 @@
   "version": "0.1.0",
 
   "build": {
-    "beforeDevCommand": "",
-    "beforeBuildCommand": "",
-    "frontendDist": "../dist"
+    "beforeDevCommand": "npm run dev --prefix ../nooforge-ui-svelte",
+    "beforeBuildCommand": "npm run build --prefix ../nooforge-ui-svelte",
+    "devUrl": "http://localhost:5173",
+    "frontendDist": "../nooforge-ui-svelte/dist"
   },
 
   "app": {
