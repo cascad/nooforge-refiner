@@ -1,0 +1,158 @@
+<!-- /index.html -->
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <title>Nooforge — Ingest / RAG / Search</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div id="app">
+    <header class="app-header">
+      <h1>Nooforge</h1>
+
+      <div class="top-tabs">
+        <button class="top-tab active" data-screen="ingest-screen">Ingest</button>
+        <button class="top-tab" data-screen="rag-screen">RAG</button>
+        <button class="top-tab" data-screen="search-screen">Search</button>
+      </div>
+    </header>
+
+    <main class="layout">
+
+      <!-- ===== INGEST ===== -->
+      <section id="ingest-screen" class="screen visible">
+        <div class="ingest-panel">
+          <h2>Ingest</h2>
+
+          <div class="tabs">
+            <button class="tab active" data-tab="text">Текст</button>
+            <button class="tab" data-tab="url">URL</button>
+            <button class="tab" data-tab="file">Файл</button>
+          </div>
+
+          <div class="tab-content" id="tab-text">
+            <textarea id="ingest-text"
+              placeholder="Вставьте текст… (сюда же можно перетащить файл мышкой)"></textarea>
+            <div class="row">
+              <input id="ingest-title" type="text" placeholder="Опционально: заголовок" />
+              <select id="ingest-lang" title="Язык">
+                <option value="ru">ru</option>
+                <option value="en">en</option>
+              </select>
+            </div>
+            <label class="checkbox">
+              <input id="ingest-explain" type="checkbox" />
+              Давать краткие объяснения (explain)
+            </label>
+            <div class="row">
+              <button id="ingest-text-btn">Загрузить текст</button>
+              <input id="ingest-file" type="file" class="file-input-hidden" />
+              <button id="ingest-file-picker-btn" title="Выбрать файл через проводник">Выбрать файл…</button>
+            </div>
+            <div id="status" aria-live="polite"></div>
+          </div>
+
+          <div class="tab-content hidden" id="tab-url">
+            <input id="ingest-url" type="url" placeholder="https://ссылка-на-страницу" />
+            <div class="row">
+              <input id="ingest-url-title" type="text" placeholder="Опционально: заголовок" />
+              <select id="ingest-url-lang" title="Язык">
+                <option value="ru">ru</option>
+                <option value="en">en</option>
+              </select>
+            </div>
+            <button id="ingest-url-btn">Загрузить URL</button>
+          </div>
+
+          <div class="tab-content hidden" id="tab-file">
+            <div class="drop-zone" id="file-drop-zone">Перетащите файл сюда</div>
+            <div class="row">
+              <input id="ingest-file-title" type="text" placeholder="Опционально: заголовок" />
+              <select id="ingest-file-lang" title="Язык">
+                <option value="ru">ru</option>
+                <option value="en">en</option>
+              </select>
+            </div>
+            <div class="row">
+              <input id="ingest-file-raw" type="file" />
+              <button id="ingest-file-btn">Загрузить файл</button>
+            </div>
+          </div>
+        </div>
+
+        <section class="results-panel">
+          <div class="split-vertical">
+            <div class="pane top">
+              <div class="pane-header">
+                <h2>Чанки</h2>
+                <div class="right-actions">
+                  <label class="checkbox small">
+                    <input id="toggle-only-latest" type="checkbox" />
+                    Только свежие
+                  </label>
+                </div>
+              </div>
+              <div class="table-wrap">
+                <table id="chunks-table">
+                  <thead>
+                    <tr>
+                      <th>Источник</th>
+                      <th>Заголовок</th>
+                      <th>Тип</th>
+                      <th>Span</th>
+                      <th>Дата</th>
+                    </tr>
+                  </thead>
+                  <tbody id="chunks-tbody"><!-- rows --></tbody>
+                </table>
+              </div>
+            </div>
+            <div class="pane bottom">
+              <div class="pane-header">
+                <h2>Предпросмотр</h2>
+                <div class="right-actions" id="preview-meta"><!-- meta --></div>
+              </div>
+              <pre id="chunk-preview" class="preview"></pre>
+            </div>
+          </div>
+        </section>
+      </section>
+
+      <!-- ===== RAG ===== -->
+      <section id="rag-screen" class="screen hidden">
+        <div class="ingest-panel">
+          <h2>RAG</h2>
+          <textarea id="rag-input" placeholder="Введите вопрос…"></textarea>
+          <div class="row">
+            <button id="rag-run-btn">Спросить</button>
+            <button id="rag-cancel-btn" class="danger">⛔ Остановить</button>
+          </div>
+          <h3>Ответ</h3>
+          <pre id="rag-output" class="preview"></pre>
+          <h3>Контекст</h3>
+          <pre id="rag-context" class="preview"></pre>
+        </div>
+      </section>
+
+      <!-- ===== SEARCH ===== -->
+      <section id="search-screen" class="screen hidden">
+        <div class="ingest-panel">
+          <h2>Search</h2>
+          <input id="search-query" type="text" placeholder="Введите запрос…" />
+          <div class="row">
+            <button id="search-run-btn">Искать</button>
+            <button id="search-cancel-btn" class="danger">⛔ Остановить</button>
+          </div>
+          <ul id="search-results" class="list"></ul>
+          <pre id="search-preview" class="preview"></pre>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <script src="main.js" type="module"></script>
+</body>
+</html>

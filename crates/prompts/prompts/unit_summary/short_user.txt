@@ -1,3 +1,0 @@
-Write a single-sentence gist (<= 30 tokens) of the following text. Keep the same language as the input.
-
-{{TEXT}}

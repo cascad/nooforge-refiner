@@ -1,3 +1,0 @@
-Refine the following unit without changing its language or meaning. Return only corrected text.
-
-{{TEXT}}

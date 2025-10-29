@@ -1,0 +1,214 @@
+<<<BLOCK:0>>>
+# Section 1: Normal paragraphs
+Vectorized aggregation keeps columns compressed and operates in batches for cache locality.
+Late materialization defers tuple reconstruction until absolutely necessary.
+This technique is common in analytical databases such as ClickHouse and DuckDB.
+<<<END:0>>>
+
+<<<BLOCK:1>>>
+## Section 2: No punctuation chaos
+this text has no commas or dots only words one after another
+sometimes even linebreaks are missing
+look it just goes on and on
+проверим как поведет себя система если встретит кириллицу без разделителей она не должна ломаться
+<<<END:1>>>
+
+<<<BLOCK:2>>>
+## Section 3: List & nested items
+- apples
+- bananas
+  - yellow
+  - curved
+- oranges
+1) step one
+2) step two
+   - substep a
+   - substep b
+* weird bullet
++ another one
+<<<END:2>>>
+
+<<<BLOCK:3>>>
+## Section 4: Markdown tables
+| col1 | col2 | col3 |
+|------|------|------|
+| a    |  1   | α |
+| b    |  2   | β |
+| c    |  3   | γ |
+
+| system | language | comment |
+|---------|-----------|----------|
+| TinyQuorum | Rust | Raft KV |
+| Grepzilla | Go | regex engine |
+| NooForge | Rust+Python | knowledge graph |
+<<<END:3>>>
+
+<<<BLOCK:4>>>
+---
+___
+***
+not a rule but looks like one _
+----not really---
+<<<END:4>>>
+
+<<<BLOCK:5>>>
+## Section 6: Code blocks (SQL, Rust, Python)
+```sql
+SELECT user_id, SUM(amount) AS total
+FROM payments
+WHERE status='ok'
+GROUP BY user_id
+ORDER BY total DESC;
+```
+<<<END:5>>>
+
+<<<BLOCK:6>>>
+```rust
+fn main() {
+    println!("Привет, мир");
+    let mut x = 42;
+    x += 1;
+    println!("Value = {}", x);
+}
+```
+<<<END:6>>>
+
+<<<BLOCK:7>>>
+```python
+def process(data):
+    for item in data:
+        if item > 10:
+            print("big", item)
+        else:
+            print("small", item)
+```
+<<<END:7>>>
+
+<<<BLOCK:8>>>
+## Section 7: Inline code and escaped content
+This text mentions `SELECT * FROM users` and some math like $E = mc^2$ or inline `fn()` examples.
+And also \$escaped\_json\_like: "{"key": "value"}"
+<<<END:8>>>
+
+<<<BLOCK:9>>>
+## Section 8: Logs and traces
+2025-10-18T12:00:01Z INFO starting server on port 8080
+2025-10-18T12:00:02Z WARN connection refused for client 127.0.0.1
+2025-10-18T12:00:03Z ERROR failed to open file: no such file or directory
+TRACE [core::net] opening socket
+TRACE [core::net] accepted connection id=42
+<<<END:9>>>
+
+<<<BLOCK:10>>>
+## Section 9: HTML mixed with markdown
+<div class="note">
+  <h2>Embedded HTML</h2>
+  <p>Sometimes markdown processors allow raw HTML.</p>
+</div>
+
+<pre><code>int main() { return 0; }</code></pre>
+<<<END:10>>>
+
+<<<BLOCK:11>>>
+## Section 10: Random garbage OCR / encoding mix
+Thi5 1ine 1ook5 1ike OCR
+съешьжеещёэтихмягкихфранцузскихбулокдадовыпейчаю
+bad mojibake: Ã© Ã¶ ÃŸ
+%PDF-1.5 random header remains
+[▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒]
+<<<END:11>>>
+
+<<<BLOCK:12>>>
+## Section 11: Email thread
+From: Alice <alice@example.com>
+To: Bob <bob@example.com>
+Subject: Re: System crash
+Date: Tue, 15 Oct 2025 09:41:22 +0300
+<<<END:12>>>
+
+<<<BLOCK:13>>>
+> On Mon, Oct 14, 2025 at 22:00, Bob wrote:
+> Hey, the service crashed after WAL replay.
+We should investigate the segment boundary.
+Regards,
+Alice
+<<<END:13>>>
+
+<<<BLOCK:14>>>
+## Section 12: Mathematical blocks
+<<<END:14>>>
+
+<<<BLOCK:15>>>
+$$
+\int_0^\infty e^{-x^2} dx = \frac{\sqrt{\pi}}{2}
+$$
+<<<END:15>>>
+
+<<<BLOCK:16>>>
+\[
+a^2 + b^2 = c^2
+\]
+<<<END:16>>>
+
+<<<BLOCK:17>>>
+## Section 13: Repeated headings and noise
+<<<END:17>>>
+
+<<<BLOCK:18>>>
+# heading
+# heading
+# heading
+some text follows
+# heading again
+<<<END:18>>>
+
+<<<BLOCK:19>>>
+## Section 14: Mixed RU/EN text
+<<<END:19>>>
+
+<<<BLOCK:20>>>
+Этот текст начинается на русском потом suddenly switches to english and back опять
+The segmenter should detect script transitions and avoid merging across them.
+<<<END:20>>>
+
+<<<BLOCK:21>>>
+## Section 15: Log continuation with tables
+<<<END:21>>>
+
+<<<BLOCK:22>>>
+timestamp | level | message
+----------|--------|---------
+2025-10-18 00:00 | INFO | process started
+2025-10-18 00:01 | WARN | missing config key
+2025-10-18 00:02 | ERROR | panic in module x
+<<<END:22>>>
+
+<<<BLOCK:23>>>
+## Section 16: Random sequences without separators
+<<<END:23>>>
+
+<<<BLOCK:24>>>
+abc def ghi jkl mno pqr stu vwxyz
+абвгд еёжзий клмнопр стуф хцчшщ ыьэюя
+0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ
+<<<END:24>>>
+
+<<<BLOCK:25>>>
+## Section 17: Broken front matter mid-text
+<<<END:25>>>
+
+<<<BLOCK:26>>>
+---
+not real front matter
+key: value
+---
+<<<END:26>>>
+
+<<<BLOCK:27>>>
+## Section 18: Conclusion
+<<<END:27>>>
+
+<<<BLOCK:28>>>
+That’s the end of this chaos file.
+If your segmenter survived this, it probably works on anything.
+<<<END:28>>>

@@ -1,0 +1,27 @@
+[package]
+name = "nooforge-tauri"
+version = "0.1.0"
+description = "Nooforge desktop UI (Ingest / RAG / Search) on Tauri v2"
+edition = "2021"
+rust-version = "1.70"
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+reqwest = { version = "0.12", features = ["json", "multipart", "rustls-tls"] }
+urlencoding = "2"
+base64 = "0.22"
+tokio = { version = "1.40", features = ["rt-multi-thread", "macros"] }
+
+[features]
+default = []
+
+[profile.release]
+lto = true
+codegen-units = 1
+panic = "abort"
+strip = "symbols"

@@ -1,2 +1,0 @@
-You extract entities and bilingual topics as strict JSON. No markdown. Return an object:
-{"entities": string[], "topics_ru": string[], "topics_en": string[]}

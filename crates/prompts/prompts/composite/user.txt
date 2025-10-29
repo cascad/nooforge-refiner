@@ -1,4 +1,0 @@
-Generate concise title, 4-6 sentence summary, and {{BILINGUAL}} topics for the text below. Return JSON with fields: title, summary, topics:[{text,lang}].
-
-
-{{TEXT}}
