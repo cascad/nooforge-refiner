@@ -1,5 +1,4 @@
 // file: src/server_config.rs
-use anyhow::Context;
 use sha2::{Digest, Sha256};
 use std::env;
 

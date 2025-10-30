@@ -227,37 +227,72 @@ impl Pipeline for HybridPipeline {
         _lang: Option<String>,
         title: Option<String>,
     ) -> Result<IngestResult> {
-        // Если файл похож на текст — декодируем и индексируем как документ (UTF-8)
+        // 1) Единообразно считаем doc_id и source_id (как в ingest_text)
+        let doc_id = title
+            .or_else(|| {
+                std::path::Path::new(&name)
+                    .file_stem()
+                    .and_then(|s| s.to_str())
+                    .map(|s| s.to_string())
+            })
+            .unwrap_or_else(|| compute_doc_id(&bytes));
+        let source_id = format!("{}{}", self.cfg.hybrid.source_prefix, doc_id);
+
+        // 2) Индексация
         if is_text_like(&name, &bytes) {
+            // «Текстоподобное»: декодируем и индексируем как документ
             let text = decode_to_utf8_lossy(&bytes);
-            let doc_id = title
-                .or_else(|| {
-                    std::path::Path::new(&name)
-                        .file_stem()
-                        .and_then(|s| s.to_str())
-                        .map(|s| s.to_string())
-                })
-                .unwrap_or_else(|| hybrid_rag::ingest::compute_doc_id(&bytes));
-            let source_id = format!("{}{}", self.cfg.hybrid.source_prefix, doc_id);
             self.indexer
                 .index_document(&doc_id, &source_id, &text)
                 .await?;
-            return Ok(IngestResult {
-                chunks: vec![],
-                source_id,
-            });
+        } else {
+            // «Бинарное»: сохраняем во временную папку и индексируем директорию
+            let dir = tempfile::tempdir()?;
+            let path = dir.path().join(&name);
+            std::fs::write(&path, &bytes)?;
+            self.indexer
+                .index_directory(dir.path().to_str().unwrap(), &source_id)
+                .await?;
         }
 
-        // иначе — как было: сохраняем и индексируем папку (pdf/docx и т.п.)
-        let dir = tempfile::tempdir()?;
-        let path = dir.path().join(&name);
-        std::fs::write(&path, &bytes)?;
-        let source_id = self.cfg.hybrid.source_prefix.clone();
-        self.indexer
-            .index_directory(dir.path().to_str().unwrap(), &source_id)
-            .await?;
+        // 3) Достаём чанки СРАЗУ, как это делается в ingest_text
+        let mut listed = vec![];
+
+        if let Ok(res) = self.retriever.search_in_document("*", &doc_id, 100).await {
+            if !res.is_empty() {
+                listed = res;
+            }
+        }
+        if listed.is_empty() {
+            // Фолбэк: иногда поисковый ключ — source_id
+            if let Ok(res) = self
+                .retriever
+                .search_in_document("*", &source_id, 100)
+                .await
+            {
+                listed = res;
+            }
+        }
+
+        tracing::info!("🧩 chunks found (file) = {}", listed.len());
+
         Ok(IngestResult {
-            chunks: vec![],
+            chunks: listed
+                .into_iter()
+                .map(|r| Chunk {
+                    id: r.chunk_id,
+                    source: r.source_id,
+                    title: None,
+                    kind: if r.kinds.is_empty() {
+                        None
+                    } else {
+                        Some(r.kinds.join(","))
+                    },
+                    span: Some((r.span.0 as u64, r.span.1 as u64)),
+                    preview: Some(r.text),
+                    created_at: None,
+                })
+                .collect(),
             source_id,
         })
     }
