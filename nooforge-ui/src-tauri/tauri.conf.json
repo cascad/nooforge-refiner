@@ -3,22 +3,39 @@
   "identifier": "com.nooforge.app",
   "productName": "Nooforge",
   "version": "0.1.0",
-
   "build": {
-    "beforeDevCommand": "npm run dev --prefix ../nooforge-ui-svelte",
-    "beforeBuildCommand": "npm run build --prefix ../nooforge-ui-svelte",
-    "devUrl": "http://localhost:5173",
-    "frontendDist": "../nooforge-ui-svelte/dist"
+    "beforeDevCommand": "npm --prefix ../nooforge-solidjs run dev",
+    "beforeBuildCommand": "npm --prefix ../nooforge-solidjs run build",
+    "devUrl": "http://localhost:1420",
+    "frontendDist": "../nooforge-solidjs/dist"
   },
-
   "app": {
     "withGlobalTauri": true,
-    "security": { "csp": null },
+    "security": {
+      "csp": null,
+      "capabilities": [
+        {
+          "identifier": "main",
+          "windows": ["*"],
+          "permissions": [
+            "dialog:allow-open",
+            "dialog:allow-save",
+            "core:default",
+            "core:event:allow-listen",
+            "core:event:allow-emit"
+          ]
+        }
+      ]
+    },
     "windows": [
-      { "title": "Nooforge", "width": 1200, "height": 900, "resizable": true }
+      {
+        "title": "Nooforge",
+        "width": 1200,
+        "height": 900,
+        "resizable": true
+      }
     ]
   },
-
   "bundle": {
     "active": true,
     "targets": "all"

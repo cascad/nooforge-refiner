@@ -17,6 +17,8 @@ urlencoding = "2"
 base64 = "0.22"
 tokio = { version = "1.40", features = ["rt-multi-thread", "macros"] }
 tauri-plugin-devtools = "2"
+tauri-plugin-fs = "2.0"
+tauri-plugin-dialog = "2.0"
 
 [features]
 default = []

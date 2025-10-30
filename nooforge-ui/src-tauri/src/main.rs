@@ -1,5 +1,8 @@
 // nooforge-ui/src-tauri/src/main.rs
-#![cfg_attr(all(not(debug_assertions), target_os = "windows"), windows_subsystem = "windows")]
+#![cfg_attr(
+    all(not(debug_assertions), target_os = "windows"),
+    windows_subsystem = "windows"
+)]
 
 use std::time::Duration;
 
@@ -9,8 +12,8 @@ const BASE_URL: &str = "http://127.0.0.1:8090";
 
 fn http_client() -> Result<Client, String> {
     reqwest::Client::builder()
-        .no_proxy()          // важно: не используем системный прокси для localhost
-        .http1_only()        // надёжнее для локалки
+        .no_proxy() // важно: не используем системный прокси для localhost
+        .http1_only() // надёжнее для локалки
         .timeout(Duration::from_secs(60))
         .build()
         .map_err(|e| e.to_string())
@@ -99,6 +102,8 @@ async fn ingest_file(path: String) -> Result<String, String> {
 
 fn main() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_dialog::init())
+        // .plugin(tauri_plugin_fs::init())
         .invoke_handler(tauri::generate_handler![
             rag,
             search,

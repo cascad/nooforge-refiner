@@ -29,27 +29,8 @@
 
 ---
 
-### 🪟 Пример (Windows PowerShell)
-```sh
-python -m cli_openrouter `
-  --model qwen/qwen-2.5-72b-instruct `
-  --input samples/tst04.txt `
-  --output out.json `
-  --seg-mode llm-first `
-  --sentence-units `
-  --bilingual-topics `
-  --w 3,5 `
-  --log-level DEBUG
-```
+cargo run -p nooforge-axum-server
 
-```sh
-python -m cli_openrouter `
-  --model qwen/qwen-2.5-72b-instruct `
-  --input samples/postgres_parts.txt `
-  --output out.json `
-  --seg-mode llm-first `
-  --sentence-units `
-  --bilingual-topics `
-  --w 3,5 `
-  --log-level DEBUG
-```
+cd nooforge-ui
+cargo tauri dev
+
