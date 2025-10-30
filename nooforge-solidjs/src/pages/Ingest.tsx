@@ -1,50 +1,115 @@
-// src/pages/Ingest.tsx
+// nooforge-solidjs/src/pages/Ingest.tsx
 import { Component, createSignal, Show, onMount, onCleanup } from 'solid-js';
 import Spinner from '../components/Spinner';
 import StatusDot from '../components/StatusDot';
+import DropZone from '../components/DropZone';
 import { invokeBackend, selectFile, setupTauriFileDrop } from '../lib/platform';
-import { formatError } from '../lib/utils';
+import { normalizeDropPath } from '../lib/path_to_file';
 import type { Status } from '../types/ui';
 
+function canonPath(raw: string): string | null {
+  let s = normalizeDropPath(raw);
+  if (!s) return null;
+
+  // JSON вида [{"resource":{fsPath:"d:\\..."}}, ...] или ["d:\\..."]
+  if (s.trim().startsWith('[')) {
+    try {
+      const parsed = JSON.parse(s);
+      const a = Array.isArray(parsed) ? parsed[0] : null;
+      const fsPath = (a && typeof a === 'object') ? (a as any)?.resource?.fsPath : undefined;
+      if (typeof fsPath === 'string') s = fsPath;
+      else if (typeof a === 'string') s = a;
+    } catch { /* ignore */ }
+  }
+
+  // file:///d%3A/... → D:/... ; /d:/... → D:/...
+  if (s.startsWith('file://')) {
+    s = s.replace(/^file:\/+/, '');
+    try { s = decodeURI(s); } catch {}
+    if (s.startsWith('/')) s = s.slice(1);
+  }
+  if (/^\/[A-Za-z]:\//.test(s)) s = s.slice(1);
+
+  s = s.replace(/\\/g, '/');
+  s = s.replace(/^([a-zA-Z]):\//, (_, d: string) => d.toUpperCase() + ':/');
+
+  if (/^[A-Z]:\//.test(s) || /^\/\/[^/]+\/[^/]+/.test(s) || s.startsWith('/mnt/')) {
+    return s;
+  }
+  return null;
+}
+
 const Ingest: Component = () => {
-  // Text ingest state
+  // TEXT
   const [text, setText] = createSignal('');
   const [busyText, setBusyText] = createSignal(false);
   const [statusText, setStatusText] = createSignal<Status>('idle');
   const [titleText, setTitleText] = createSignal('Готов');
   const [resultText, setResultText] = createSignal('');
 
-  // File ingest state
+  // FILE
   const [busyFile, setBusyFile] = createSignal(false);
   const [statusFile, setStatusFile] = createSignal<Status>('idle');
   const [titleFile, setTitleFile] = createSignal('Готов');
   const [resultFile, setResultFile] = createSignal('');
 
-  let dropZoneRef: HTMLDivElement | undefined;
+  // ---- batching & dedup for a single drop ----
+  let dropBatch = new Set<string>();
+  let dropTimer: number | undefined;
 
+  async function flushDropBatch() {
+    const list = Array.from(dropBatch);
+    dropBatch.clear(); dropTimer = undefined;
+
+    const normalized = Array.from(
+      new Set(
+        list.map(canonPath).filter((x): x is string => !!x)
+      )
+    );
+
+    if (!normalized.length) {
+      console.debug('[Ingest] drop batch: nothing usable', list);
+      return;
+    }
+
+    const path = normalized[0];
+    console.debug('[Ingest] drop final path:', path);
+    await runFileOnce(path);
+  }
+
+  function queuePaths(raws: string[]) {
+    for (const r of raws) {
+      if (!r || r === 'about:blank#blocked') continue;
+      dropBatch.add(r);
+    }
+    if (dropTimer === undefined) {
+      dropTimer = window.setTimeout(flushDropBatch, 50) as unknown as number;
+    }
+  }
+
+  // ---------- TEXT ----------
   const handleTextKeyDown = (e: KeyboardEvent) => {
     if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
       e.preventDefault();
-      runText();
+      void runText();
     }
   };
 
   const runText = async () => {
-    const textValue = text().trim();
-    if (!textValue || busyText()) return;
+    const value = text().trim();
+    if (!value || busyText()) return;
 
     setBusyText(true);
     setStatusText('loading');
     setTitleText('Выполняется…');
     setResultText('');
-
     try {
-      const result = await invokeBackend<string>('ingest_text', { text: textValue });
-      setResultText(result || '');
+      const res = await invokeBackend<string>('ingest_text', { text: value });
+      setResultText(res || '');
       setStatusText('ok');
       setTitleText('Успешно');
-    } catch (error) {
-      setResultText(formatError(error));
+    } catch (err: any) {
+      setResultText(String(err?.message ?? err));
       setStatusText('error');
       setTitleText('Ошибка');
     } finally {
@@ -52,69 +117,65 @@ const Ingest: Component = () => {
     }
   };
 
-  const pickFile = async () => {
-    try {
-      const path = await selectFile();
-      if (path) {
-        await runFileByPath(path);
-      }
-    } catch (error) {
-      setResultFile(formatError(error));
-      setStatusFile('error');
-      setTitleFile('Диалог не открылся');
-    }
-  };
+  // ---------- FILE ----------
+  async function runFileOnce(path: string) {
+    if (!path || busyFile()) return;
 
-  const runFileByPath = async (path: string) => {
     setBusyFile(true);
     setStatusFile('loading');
     setTitleFile('Загрузка…');
     setResultFile('');
-
     try {
-      const result = await invokeBackend<string>('ingest_file', { path });
-      setResultFile(result || '');
+      const res = await invokeBackend<string>('ingest_file', { path });
+      setResultFile(res || '');
       setStatusFile('ok');
       setTitleFile('Успешно');
-    } catch (error) {
-      setResultFile(formatError(error));
+    } catch (err: any) {
+      console.error('[Ingest] ingest_file error:', err);
+      setResultFile(String(err?.message ?? err));
       setStatusFile('error');
       setTitleFile('Ошибка');
     } finally {
       setBusyFile(false);
     }
+  }
+
+  const pickFile = async () => {
+    const path = await selectFile();
+    if (path) queuePaths([path]);
   };
 
-  let unlistenFileDrop: (() => void) | undefined;
-
-  // Биндим Tauri file-drop event
+  // ---------- Native DnD (Explorer / VSCode Explorer) + Paste ----------
   onMount(async () => {
-    console.log('Ingest mounted, setting up Tauri file drop');
-    
-    unlistenFileDrop = await setupTauriFileDrop((paths) => {
-      console.log('Files dropped:', paths);
-      if (paths.length > 0 && !busyFile()) {
-        runFileByPath(paths[0]);
-      }
+    // 1) Нативный таури-дроп (Проводник/VSCode Explorer)
+    const unlisten = await setupTauriFileDrop(async (paths) => {
+      if (!paths?.length) return;
+      queuePaths(paths);
+    });
+
+    // 2) Ctrl+V путей
+    const onPaste = async (e: ClipboardEvent) => {
+      const t = e.clipboardData?.getData('text/plain')?.trim();
+      if (!t) return;
+      const lines = t.split(/\r?\n/).map(s => s.trim()).filter(Boolean);
+      queuePaths(lines);
+    };
+    window.addEventListener('paste', onPaste);
+
+    onCleanup(() => {
+      try { unlisten(); } catch {}
+      window.removeEventListener('paste', onPaste);
+      if (dropTimer !== undefined) clearTimeout(dropTimer);
     });
   });
 
-  onCleanup(() => {
-    console.log('Cleaning up file drop listener');
-    if (unlistenFileDrop) {
-      unlistenFileDrop();
-    }
-  });
-
   return (
-    <div class="space-y-6">
-      {/* Text Ingest Section */}
+    <div class="space-y-6 select-auto pointer-events-auto">
+      {/* TEXT */}
       <div class="rounded-2xl border border-white/10 bg-gradient-to-br from-neutral-900/90 to-neutral-900/70 backdrop-blur-sm p-6 shadow-2xl">
         <div class="flex items-center gap-3 mb-4">
           <h3 class="text-lg font-semibold tracking-tight">Ingest (Text)</h3>
-          <Show when={busyText()}>
-            <Spinner size={16} />
-          </Show>
+          <Show when={busyText()}><Spinner size={16} /></Show>
           <StatusDot status={statusText()} title={titleText()} />
         </div>
 
@@ -132,9 +193,7 @@ const Ingest: Component = () => {
           onClick={runText}
         >
           <Show when={busyText()} fallback="Обработать">
-            <span class="flex items-center gap-2">
-              <Spinner size={14} /> Обработка…
-            </span>
+            <span class="flex items-center gap-2"><Spinner size={14} /> Обработка…</span>
           </Show>
         </button>
 
@@ -145,26 +204,23 @@ const Ingest: Component = () => {
         </Show>
       </div>
 
-      {/* File Ingest Section */}
+      {/* FILE */}
       <div class="rounded-2xl border border-white/10 bg-gradient-to-br from-neutral-900/90 to-neutral-900/70 backdrop-blur-sm p-6 shadow-2xl">
         <div class="flex items-center gap-3 mb-4">
           <h3 class="text-lg font-semibold tracking-tight">Ingest (File)</h3>
-          <Show when={busyFile()}>
-            <Spinner size={16} />
-          </Show>
+          <Show when={busyFile()}><Spinner size={16} /></Show>
           <StatusDot status={statusFile()} title={titleFile()} />
         </div>
 
-        <div
-          ref={dropZoneRef}
-          class="rounded-xl border-2 border-dashed border-white/20 bg-neutral-950/30 p-12 text-center hover:border-white/40 hover:bg-neutral-950/50 transition-all cursor-pointer group"
-        >
-          <div class="text-neutral-400 group-hover:text-neutral-300 transition-colors mb-3">
-            <svg class="w-12 h-12 mx-auto mb-3 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-            </svg>
-            Перетащите файл сюда
-          </div>
+        <DropZone
+          onPaths={async (paths) => {
+            if (!paths?.length) return;
+            // все варианты в батч (де-дуп, 50мс)
+            for (const p of paths) queuePaths([p]);
+          }}
+        />
+
+        <div class="mt-4">
           <button
             class="px-5 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 font-medium transition-all disabled:opacity-50"
             disabled={busyFile()}

@@ -3,14 +3,17 @@
   "identifier": "com.nooforge.app",
   "productName": "Nooforge",
   "version": "0.1.0",
+
   "build": {
     "beforeDevCommand": "npm --prefix ../nooforge-solidjs run dev",
     "beforeBuildCommand": "npm --prefix ../nooforge-solidjs run build",
     "devUrl": "http://localhost:1420",
     "frontendDist": "../nooforge-solidjs/dist"
   },
+
   "app": {
     "withGlobalTauri": true,
+
     "security": {
       "csp": null,
       "capabilities": [
@@ -18,26 +21,42 @@
           "identifier": "main",
           "windows": ["*"],
           "permissions": [
-            "dialog:allow-open",
-            "dialog:allow-save",
             "core:default",
             "core:event:allow-listen",
-            "core:event:allow-emit"
+            "core:event:allow-emit",
+            "dialog:allow-open",
+            "dialog:allow-save"
           ]
         }
       ]
     },
+
     "windows": [
       {
         "title": "Nooforge",
         "width": 1200,
         "height": 900,
-        "resizable": true
+        "resizable": true,
+
+        "dragDropEnabled": true
       }
     ]
   },
+
   "bundle": {
     "active": true,
     "targets": "all"
+  },
+
+  "plugins": {
+    "fs": {
+      "requireLiteralLeadingDot": false
+    },
+    "dialog": {
+      "default": true
+    },
+    "clipboard-manager": {
+      "default": true
+    }
   }
 }

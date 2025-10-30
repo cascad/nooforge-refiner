@@ -2,6 +2,7 @@
 members = [
     "crates/hybrid-rag",
     "crates/nooforge-axum-server",
+    "crates/nooforge-iced",
     "nooforge-ui/src-tauri",
 ]
 resolver = "2"

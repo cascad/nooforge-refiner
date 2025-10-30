@@ -4,6 +4,8 @@
     windows_subsystem = "windows"
 )]
 
+mod dnd;
+
 use std::time::Duration;
 
 use reqwest::{header, multipart, Client};
@@ -103,12 +105,13 @@ async fn ingest_file(path: String) -> Result<String, String> {
 fn main() {
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
-        // .plugin(tauri_plugin_fs::init())
+        .plugin(tauri_plugin_fs::init())
         .invoke_handler(tauri::generate_handler![
             rag,
             search,
             ingest_text,
-            ingest_file
+            ingest_file,
+            dnd::set_file_drop_enabled,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
